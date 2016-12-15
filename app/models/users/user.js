@@ -2,31 +2,34 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var bcrypt = require('bcrypt');
+var ObjectId = Schema.Types.ObjectId;
 
 var UserSchema = new Schema({
 		name: {
         type: String,
-        unique: true,
-        required: true
-    },
+        unique: true
+				},
 		password: {
-        type: String,
-        required: true
+			//Should add a unique as true here at a later point MS
+        type: String
     },
 		fullname: String,
+		occupation: String,
 		email: String,
 		paid: Number,
-		avatar: String,
-		notes: [{
-			title: String,
-			locked: Boolean,
-			date: {type: Date, default: Date.now},
-			presets: [{
-				template: Number,
-			}]}]
+		avatar: {type: String, default: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y"},
+        friendslist: [{
+                friendName: { type: String, unique: true },
+                friendId: { type: String, unique: true },
+                status: String,
+                date: {type:Date, default: Date.now}
+        }],
+        required: ["name", "password"]
 
 }, {versionKey: false});
 
+
+//Verifying password, salting and hashing before saving user
 UserSchema.pre('save', function (next) {
     var user = this;
     if (this.isModified('password') || this.isNew) {
@@ -47,6 +50,8 @@ UserSchema.pre('save', function (next) {
     }
 });
 
+
+//How to check the password is correct, a compare password function
 UserSchema.methods.comparePassword = function (passw, cb) {
     bcrypt.compare(passw, this.password, function (err, isMatch) {
         if (err) {
